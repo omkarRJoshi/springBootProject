@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface DepartmentService {
 
+    public Department fetchDepartmentByName(String departmentName);
+
     public Department saveDepartment(Department department);
 
     public List<Department> getDepartments();

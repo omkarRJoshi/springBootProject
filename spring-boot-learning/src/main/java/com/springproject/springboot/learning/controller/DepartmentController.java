@@ -2,11 +2,12 @@ package com.springproject.springboot.learning.controller;
 
 import com.springproject.springboot.learning.entity.Department;
 import com.springproject.springboot.learning.service.DepartmentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 public class DepartmentController {
@@ -15,7 +16,7 @@ public class DepartmentController {
     private DepartmentService departmentService;
 
     @PostMapping("/departments")
-    public Department saveDepartment(@RequestBody Department department){
+    public Department saveDepartment(@Valid @RequestBody Department department){
         return departmentService.saveDepartment(department);
     }
 
@@ -37,6 +38,11 @@ public class DepartmentController {
     @PutMapping("departments/{id}")
     public Department updatedepartment(@PathVariable("id") Long id, @RequestBody Department department){
         return departmentService.updatedepartment(id, department);
+    }
+
+    @GetMapping("departments/name/{name}")
+    public Department fetchDepartmentByName(@PathVariable("name") String departmentName){
+        return departmentService.fetchDepartmentByName(departmentName);
     }
 
 }

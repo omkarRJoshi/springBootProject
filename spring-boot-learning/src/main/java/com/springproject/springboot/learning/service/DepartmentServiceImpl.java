@@ -14,6 +14,12 @@ public class DepartmentServiceImpl implements DepartmentService{
 
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    @Override
+    public Department fetchDepartmentByName(String departmentName) {
+        return departmentRepository.findByDepartmentNameIgnoreCase(departmentName);
+    }
+
     @Override
     public Department saveDepartment(Department department) {
         return departmentRepository.save(department);
