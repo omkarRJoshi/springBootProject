@@ -17,7 +17,7 @@ description -------------
     - spring-boot-starter-validation: Bean Validation with Hibernate validator.
     - Lombok: Java annotation library which helps to reduce boilerplate code
     - MySQL Driver 
-- [Above configuration](https://start.spring.io/#!type=maven-project&language=java&platformVersion=3.0.5&packaging=jar&jvmVersion=11&groupId=com.springproject&artifactId=spring-boot-learning&name=spring-boot-learning&description=Demo%20project%20for%20Spring%20Boot&packageName=com.springproject.springboot.learning&dependencies=web,h2)
+- [Above configuration](https://start.spring.io/#!type=maven-project&language=java&platformVersion=3.0.5&packaging=jar&jvmVersion=11&groupId=com.springproject&artifactId=spring-boot-learning&name=spring-boot-learning&description=Demo%20project%20for%20Spring%20Boot&packageName=com.springproject.springboot.learning&dependencies=web,h2,devtools,data-jpa,validation,lombok,mysql)
 
 ## REST Api's in controller
 
@@ -145,6 +145,92 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     public ResponseEntity<ErrorMessage> departmentNotFoundException(DepartmentNotFoundException exception, WebRequest request){
         ErrorMessage message = new ErrorMessage(HttpStatus.NOT_FOUND, exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
+}
+```
+
+## set properties for MySql
+```
+spring.jpa.hibernate.ddl-auto = update
+spring.datasource.url = jdbc:mysql://localhost:3306/dcbapp
+spring.datasource.username = root
+spring.datasource.password = omkar126
+spring.datasource.driver-class-name = com.mysql.jdbc.Driver
+spring.jpa.show-sql = true
+```
+
+## Unit Testing
+- `spring-boot-starter-test` libary used for the testing
+- `spring-boot-starter-test` contains `junit-jupiter`, `mockito-core`, and other libraries
+
+#### Annotations req. for Unit testing
+- `@SpringBootTest` - need to add for class
+- `@Test` - need to add for method, and that method will act as a testcase
+- `@DisplayName("name for the testcase")` - name given here will come in the documentation for the respective testcase
+- `@BeforeEach` - method which has `@BeforeEach` annotation that will get execute before every testcase
+- `@MockBean` - The tagged bin will be mocked
+
+Example
+```
+@SpringBootTest
+class DepartmentServiceTest {
+
+    @Autowired
+    private DepartmentService departmentService;
+
+    @MockBean
+    private DepartmentRepository departmentRepository;
+
+    @BeforeEach
+    void setup(){
+        Department department = Department.builder()
+                .departmentName("IT")
+                .departmentAddress("Address 1")
+                .departmentCode("05")
+                .departmentId(1L)
+                .build();
+        // mocks the findByDepartmentNameIgnoreCase method with the input parameter as "IT"
+        Mockito.when(departmentRepository.findByDepartmentNameIgnoreCase("IT"))
+                .thenReturn(department);
+    }
+
+    @Test
+    @DisplayName("Get Data based on valid department name")
+    public void whenValidDepartmentName_thenDepartmentShouldFound(){
+        String departmentName = "IT";
+        Department found = departmentService.fetchDepartmentByName(departmentName);
+        assertEquals(departmentName, found.getDepartmentName());
+    }
+}
+```
+- `@DataJpaTest` used for the repository layer testing, it persisit the data inside table while execution of the testcase, after that it flushesh the data
+- `entityManager.persist(department);` used to store the data in TestEntityManager
+
+Example
+
+```
+@DataJpaTest
+class DepartmentRepositoryTest {
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @BeforeEach
+    void setUp() {
+        Department department = Department.builder()
+                .departmentName("Mechanical Engineering")
+                .departmentAddress("Address-2")
+                .departmentCode("01")
+                .build();
+        entityManager.persist(department);
+    }
+
+    @Test
+    public void whenFindByDepartmentId_thenReturnDepartment(){
+        Department department = departmentRepository.findById(1L).get();
+        assertEquals(department.getDepartmentName(), "Mechanical Engineering");
     }
 }
 ```
