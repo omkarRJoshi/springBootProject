@@ -15,6 +15,8 @@ description -------------
     - spring-boot starter: default dependecy
     - JPA: Persist data in SQL stores with Java Persistence API using Spring Data and Hibernate.
     - spring-boot-starter-validation: Bean Validation with Hibernate validator.
+    - Lombok: Java annotation library which helps to reduce boilerplate code
+    - MySQL Driver 
 - [Above configuration](https://start.spring.io/#!type=maven-project&language=java&platformVersion=3.0.5&packaging=jar&jvmVersion=11&groupId=com.springproject&artifactId=spring-boot-learning&name=spring-boot-learning&description=Demo%20project%20for%20Spring%20Boot&packageName=com.springproject.springboot.learning&dependencies=web,h2)
 
 ## REST Api's in controller
@@ -97,4 +99,52 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     private String departmentAddress;
     private String departmentCode;
+```
+## Adding Loggers
+- spring boot comes with the slf4j logging library within the system.
+- if we want to use another loggers such as log4j, then we can use it in spring boot, we need to add that in the pom.xml file
+- declaration
+`private final Logger LOGGER = LoggerFactory.getLogger(DepartmentController.class);`
+- use
+`LOGGER.info("inside fetchDepartment of DepartmentController");`
+- Loggers are helpful for logging and debugging our application
+
+## Project Lombok (Removing Boiler plate code)
+- add dependecy in the pom.xml and modify the plugin
+- below are some annotations used to remove the boiler plate code
+```
+@Data // equivalent to @Getter @Setter @RequiredArgsConstructor @ToString @EqualAndHashCode
+@NoArgsConstructor // includes default constructor
+@AllArgsConstructor // includes constructor with all arguments
+@Builder // Builder Pattern will be implemented for DepartmentService
+public class Department {
+    ....// class implementation
+}
+```
+
+## Exception Handling
+- we need to create custom ExceptionClass in the error package
+```
+public class DepartmentNotFoundException extends Exception{
+   // override all constructors from Exception class 
+}
+```
+- throw that exception in the entire heirarchy of service, and in the controller
+`... method() throws DepartmentNotFoundException {....}`
+- by doing above process we get entire error stack with the status code as 500 (Internal server error)
+- Below is implementation to get proper status code and meaningful response
+- Create a class, that class will be responsible for sending all the response back based on the exception that is being thrown
+```
+@ControllerAdvice // whatever class that we create to handle exceptions, that should be annotated with @ControllerAdvice
+@ResponseStatus // as it sends the response status
+// this is the class that will handle the all the particular exceptions that we want to send back as a response entity
+public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(DepartmentNotFoundException.class) // what type of exception this particular method is handling
+    // method which handles "DepartmentNotFoundException", and send the response as the request with the message
+    public ResponseEntity<ErrorMessage> departmentNotFoundException(DepartmentNotFoundException exception, WebRequest request){
+        ErrorMessage message = new ErrorMessage(HttpStatus.NOT_FOUND, exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
+}
 ```
