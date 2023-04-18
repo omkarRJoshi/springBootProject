@@ -45,6 +45,8 @@ class DepartmentControllerTest {
                 .departmentName("civil")
                 .departmentCode("02")
                 .build();
+
+        // Mock service layer
         Mockito.when(departmentService.saveDepartment((inputDepartment))).thenReturn(department);
 
         mockMvc.perform(post("/departments")

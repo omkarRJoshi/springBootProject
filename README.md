@@ -234,3 +234,60 @@ class DepartmentRepositoryTest {
     }
 }
 ```
+- **controller layer testing** is little bit different, because control layer is being called when we hit the API endpoint
+- `@WebMvcTest(ControllerClassName.class)` annotation is used on the class level
+- `MockMvc mockMvc` obj is used to hit the endpoint
+
+Example
+```
+@WebMvcTest(DepartmentController.class)
+class DepartmentControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private DepartmentService departmentService;
+
+    private Department department;
+    @BeforeEach
+    void setUp() {
+        department = Department.builder()
+                .departmentAddress("address-3")
+                .departmentName("civil")
+                .departmentCode("02")
+                .departmentId(1L)
+                .build();
+    }
+
+    @Test
+    void saveDepartment() throws Exception {
+        Department inputDepartment = Department.builder()
+                .departmentAddress("address-3")
+                .departmentName("civil")
+                .departmentCode("02")
+                .build();
+
+        // Mock service layer
+        Mockito.when(departmentService.saveDepartment((inputDepartment))).thenReturn(department);
+
+        mockMvc.perform(post("/departments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\n" +
+                        "    \"departmentName\": \"civil\",\n" +
+                        "    \"departmentAddress\": \"address-3\",\n" +
+                        "    \"departmentCode\": \"02\"\n" +
+                        "}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void fetchDepartment() throws Exception {
+        Mockito.when(departmentService.fetchDepartment(1L)).thenReturn(department);
+        mockMvc.perform(get("/departments/1")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.departmentName").value(department.getDepartmentName()));
+    }
+}
+```
